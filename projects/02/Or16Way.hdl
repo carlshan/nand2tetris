@@ -1,0 +1,12 @@
+
+
+CHIP Or16Way {
+    IN in[16];
+    OUT out;
+
+    PARTS:
+    Or8Way(in=in[0..7], out=first8Bits); // checks if 1 is in the first 8 bits
+    Or8Way(in=in[8..15], out=last8Bits); // checks if 1 is in the last 8 bits
+    Or(a=first8Bits, b=last8Bits, out=notZr); // Checks if 1 is in the first or last 1 bits, if so isZero=false (0)
+    Not(in=notZr, out=out);
+}

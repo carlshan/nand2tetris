@@ -7,7 +7,7 @@
  * The ALU (Arithmetic Logic Unit).
  * Computes one of the following functions:
  * x+y, x-y, y-x, 0, 1, -1, x, y, -x, -y, !x, !y,
- * x+1, y+1, x-1, y-1, x&y, x|y on two 16-bit inputs, 
+ * x+1, y+1, x-1, y-1, x&y, x|y on two 16-bit inputs,
  * according to 6 input bits denoted zx,nx,zy,ny,f,no.
  * In addition, the ALU computes two 1-bit outputs:
  * if the ALU output == 0, zr is set to 1; otherwise zr is set to 0;
@@ -27,8 +27,8 @@
 // if (out < 0) set ng = 1
 
 CHIP ALU {
-    IN  
-        x[16], y[16],  // 16-bit inputs        
+    IN
+        x[16], y[16],  // 16-bit inputs
         zx, // zero the x input?
         nx, // negate the x input?
         zy, // zero the y input?
@@ -36,11 +36,50 @@ CHIP ALU {
         f,  // compute out = x + y (if 1) or x & y (if 0)
         no; // negate the out output?
 
-    OUT 
+    OUT
         out[16], // 16-bit output
         zr, // 1 if (out == 0), 0 otherwise
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
+   // Put your code here:
+   /**
+    Chips I have available to me are:
+    1. Not16 -- used in negation of x, y and out
+    2. And16 -- used for f
+    3. Inc16 -- used to add 1 to the final output
+    4. Or16 -- Not sure if this is useful
+    5. Mux16 -- used to determine which of a or b to select (and the Mux4 and Mux8 ways)
+    6. Add16 -- used to add x+y
+    */
+    // Processing X
+    Mux16(a=x, b=false, sel=zx, out=xStep1);
+    Not16(in=xStep1, out=negXStep1);
+    Mux16(a=xStep1, b=negXStep1, sel=nx, out=xStep2);
+
+    // Processing Y
+    Mux16(a=y, b=false, sel=zy, out=yStep1);
+    Not16(in=yStep1, out=negYStep1);
+    Mux16(a=yStep1, b=negYStep1, sel=ny, out=yStep2);
+
+    // Selecting between & and +
+    Add16(a=xStep2, b=yStep2, out=xPlusY);
+    And16(a=xStep2, b=yStep2, out=xAndY);
+    Mux16(a=xAndY, b=xPlusY, sel=f, out=functionApplied);
+
+    // Selecting between negating or not
+    Not16(in=functionApplied, out=outputNegated);
+    Mux16(a=functionApplied, b=outputNegated, sel=no, out=finalOutput);
+
+    // Determining if out is 0 or negative
+    // If it's zero, all bits should be 0, Or8Way should return 0
+    // doing an or on the first and last 8 bits should return 0
+    // then zr=1
+    Or16Way(in=finalOutput, out=zr);
+
+    // Determining if finalOutput is a negative number
+    IsNeg16(in=finalOutput, out=ng);
+
+    // Finally outputting the output
+    Mux16(a=functionApplied, b=outputNegated, sel=no, out=out);
 }
