@@ -5,9 +5,18 @@
 
 /**
  * Memory of 8 registers, each 16 bit-wide. Out holds the value
- * stored at the memory location specified by address. If load==1, then 
- * the in value is loaded into the memory location specified by address 
+ * stored at the memory location specified by address. If load==1, then
+ * the in value is loaded into the memory location specified by address
  * (the loaded value will be emitted to out from the next time step onward).
+ * As a reminder
+ * 16-bit register:
+ * IN in[16], load;
+ * OUT out[16];
+ * If load[t] == 1 then out[t+1] = in[t]
+ * else out does not change
+ * Mux8Way16Bit - takes a 3-bit sel and 8 different 16-bit inputs (a-h), and picks between one of 8 different possibilities (all of which are 16bits)
+ * DMux8Way - takes a 3-bit sel and in and outputs a,b,c,d,e,f,g,h but with only one of them
+ * Register - Takes in an 16-bit input and load and outputs something depending on load
  */
 
 CHIP RAM8 {
@@ -16,4 +25,19 @@ CHIP RAM8 {
 
     PARTS:
     // Put your code here:
+    Register(in=in, load=load1, out=reg1);
+    Register(in=in, load=load2, out=reg2);
+    Register(in=in, load=load3, out=reg3);
+    Register(in=in, load=load4, out=reg4);
+    Register(in=in, load=load5, out=reg5);
+    Register(in=in, load=load6, out=reg6);
+    Register(in=in, load=load7, out=reg7);
+    Register(in=in, load=load8, out=reg8);
+
+    // Outputs the relevant register's output
+    Mux8Way16(a=reg1, b=reg2, c=reg3, d=reg4, e=reg5, f=reg6, g=reg7, h=reg8, sel=address, out=out);
+
+    // Selects the correct register to load
+    DMux8Way(in=load, sel=address, a=load1, b=load2, c=load3, d=load4, e=load5, f=load6, g=load7, h=load8);
+
 }

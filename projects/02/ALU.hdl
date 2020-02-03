@@ -73,7 +73,7 @@ CHIP ALU {
 
     // Determining if out is 0 or negative
     // If it's zero, all bits should be 0, Or8Way should return 0
-    // doing an or on the first and last 8 bits should return 0
+    // doing an or on the first 8 and last 8 bits should return 0
     // then zr=1
     Or16Way(in=finalOutput, out=zr);
 
