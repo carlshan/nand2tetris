@@ -35,20 +35,15 @@ CHIP PC {
     PARTS:
     // Put your code here:
     // If reset = 1 then out[t+1] = 0
+    Mux16(a=outA, b=outAPlusOne, sel=inc, out=o1); // increments the last output from the register or not
+    Mux16(a = o1, b = in, sel = load, out = o2); // loads the input if load=1 else uses register output from last timestep
+    Mux16(a = o2, b = false, sel = reset, out = o3); // resets if reset=1
 
-    Mux16(a=in, b=false, sel=reset, out=inOrZero); // outputs `in` if reset=0, else outputs 0
-    Or(a=reset, b=load, out=resetOrLoad);
-
-    // else if load = 1, then out[t+1] = in[t] -- also handles final else case if load=0
-    Register(in=inOrZero, load=resetOrLoad, out=outA);
+    // always take what was fed in before 
+    Register(in=o3, load=true, out=outA, out=out);
 
     // else if inc = 1 then out[t+1] = out[t] + 1
-    Inc16(in=in, out=outB);
+    Inc16(in=outA, out=outAPlusOne);
 
-    //Xor(a=inc, b=load, out=eitherIncOrNotLoad);
-    Not(in=resetOrLoad, out=NotResetNorLoad);
-    Or(a=inc, b=NotResetNorLoad, out=IncOrNotResetNorLoad);
-
-    Mux16(a=outA, b=outB, sel=IncOrNotResetNorLoad, out=out);
 
 }
